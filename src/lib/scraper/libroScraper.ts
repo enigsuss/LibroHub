@@ -30,8 +30,7 @@ export async function scrapeEbookLibraryKY(userId: string, userPw: string) {
   }
 
   await page.waitForURL('**/dig/pnd/welcome', { waitUntil: 'networkidle' });
-
-  await page.click('a[title="e-라이브러리"]');
+  await page.goto('https://elibrary.kyobobook.co.kr/dig/elb/elibrary');
   await page.waitForLoadState('networkidle');
 
   const books = await page.$$eval('#myBookList > li', (nodes) =>
@@ -106,6 +105,118 @@ export async function scrapeEbookLibraryAL(userId: string, userPw: string) {
 
       return { title, author, image, orderDate, usagePeriod };
     })
+  );
+
+  await browser.close();
+
+  return books;
+}
+
+export async function scrapeEbookLibraryYE(userId: string, userPw: string) {
+  const browser = await chromium.launch({ headless: false, slowMo: 100 });
+  const context = await browser.newContext({
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    locale: 'ko-KR',
+  });
+  const page = await context.newPage();
+
+  await page.goto('https://www.yes24.com/Templates/FTLogin.aspx');
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+  });
+
+  await page.fill('#SMemberID', userId);
+  await page.fill('#SMemberPassword', userPw);
+  await page.click('#btnLogin');
+
+  await page.waitForURL((url) => url.href.includes('yes24.com'), {
+    waitUntil: 'networkidle',
+  });
+
+  await page.goto('https://www.yes24.com/Member/FTMyWebLibrary.aspx');
+  await page.waitForLoadState('networkidle');
+
+  const books = await page.$$eval('tbody > tr', (rows) => {
+    const rawBooks = rows
+      .filter((row) => row.querySelector('.myPg_name strong'))
+      .map((row) => {
+        const title = row.querySelector('.myPg_name strong')?.textContent?.trim() || '';
+        const author =
+          row.querySelector('.myPg_auth')?.textContent?.replace(/ 저$/, '')?.trim() || '';
+        const publisher = row.querySelector('.myPg_pub')?.textContent?.trim() || '';
+        const pubDate = row.querySelector('.myPg_date')?.textContent?.trim() || '';
+        const image = row.querySelector('.myPg_img img')?.getAttribute('src') || '';
+        const price = row.querySelector('.myPg_price')?.textContent?.trim() || '';
+        const orderDate = row.querySelector('td:nth-child(4)')?.textContent?.trim() || '';
+        const expiredAt = row.querySelector('td:nth-child(5)')?.textContent?.trim() || '';
+        const status =
+          row.querySelector('td:nth-child(2)')?.childNodes[0]?.textContent?.trim() || '';
+
+        return { title, author, publisher, pubDate, image, orderDate, expiredAt, price, status };
+      });
+
+    const seen = new Set();
+    return rawBooks.filter((book) => {
+      const key = `${book.title}-${book.orderDate}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  });
+
+  await browser.close();
+
+  return books;
+}
+
+export async function scrapeEbookLibraryRI(userId: string, userPw: string) {
+  const browser = await chromium.launch({ headless: false, slowMo: 100 });
+  const context = await browser.newContext({
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    locale: 'ko-KR',
+  });
+  const page = await context.newPage();
+
+  await page.goto('https://ridibooks.com/account/login?');
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+  });
+
+  await page.fill('#id', userId);
+  await page.fill('#password', userPw);
+  await page.click('#id');
+
+  await page.click('button[type="submit"]');
+  await page.waitForURL('https://ridibooks.com/**/recommendation', { waitUntil: 'networkidle' });
+
+  await page.goto('https://ridibooks.com/library');
+  await page.waitForLoadState('networkidle');
+
+  await page.click('button:has-text("정렬")');
+  await page.waitForSelector('button:has-text("목록 보기")');
+  await page.click('button:has-text("목록 보기")');
+
+  const books = await page.$$eval('.Book.css-tjkok5', (nodes) =>
+    nodes
+      .map((el) => {
+        const title = el.querySelector('p.css-1s2rrir')?.textContent?.trim() || '';
+        const author = el.querySelector('p.css-vdu3w7')?.textContent?.trim() || '';
+        const image = el.querySelector('div.css-m7vpx0 img')?.getAttribute('src') || '';
+        const url = el.querySelector('div.css-1rqos7d a')?.getAttribute('href') || '';
+
+        if (!title) return null;
+        return {
+          title,
+          author,
+          image,
+          url: url ? `https://ridibooks.com${url}` : '',
+        };
+      })
+      .filter(Boolean)
   );
 
   await browser.close();
