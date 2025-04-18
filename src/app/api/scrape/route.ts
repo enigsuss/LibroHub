@@ -1,7 +1,12 @@
-import { scrapeEbookLibrary } from '@/lib/scraper/libroScraper';
+import { scrapeEbookLibraryAL, scrapeEbookLibraryKY } from '@/lib/scraper/libroScraper';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const books = await scrapeEbookLibrary(process.env.USER_ID!, process.env.USER_PW!);
-  return NextResponse.json(books);
+  const booksKY = await scrapeEbookLibraryKY(process.env.USER_ID_KY!, process.env.USER_PW_KY!);
+  const booksAL = await scrapeEbookLibraryAL(process.env.USER_ID_AL!, process.env.USER_PW_AL!);
+
+  return NextResponse.json({
+    kyobo: booksKY,
+    aladin: booksAL,
+  });
 }
