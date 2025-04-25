@@ -7,18 +7,21 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
+        content: resolve(__dirname, 'content.ts'),
+        background: resolve(__dirname, 'background.ts'),
         popup: resolve(__dirname, 'popup/popup.html'),
       },
-      plugins: [
+      output: {
+        entryFileNames: '[name].js',
+      },
+      plugins:[
         copy({
           targets: [
-            { src: 'src/extension/manifest.json', dest: 'dist' },
-            { src: 'src/extension/background.ts', dest: 'dist' },
-            { src: 'src/extension/content.ts', dest: 'dist' },
+            {src: 'manifest.json', dest: 'dist'},
           ],
           hook: 'writeBundle',
-        }),
-      ],
-    },
-  },
+        })
+      ]
+    }
+  }
 });
