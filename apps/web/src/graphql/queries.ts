@@ -6,7 +6,7 @@ export const GET_BOOKS_BY_USER = gql`
       id
       title
       author
-      coverImage
+      image
       service
       createdAt
     }

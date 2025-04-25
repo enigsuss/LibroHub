@@ -5,7 +5,7 @@ export default function BookCard({ book }: { book: Book }) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <Image
-        src={book.coverImage || '/placeholder.svg'}
+        src={book.image || '/placeholder.svg'}
         alt={`cover of ${book.title}`}
         width={200}
         height={200}

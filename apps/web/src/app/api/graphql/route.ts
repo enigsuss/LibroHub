@@ -31,8 +31,16 @@ const typeDefs = gql`
     author: String!
     userId: String!
     createdAt: String!
-    coverImage: String!
     service: String!
+    image: String!
+    publisher: String
+    orderDate: String
+    status: String
+    progress: String
+    expiredAt: String
+    price: String
+    url: String
+    usagePeriod: String
   }
 
   type Query {

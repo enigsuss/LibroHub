@@ -1,0 +1,20 @@
+{
+  "name": "extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node_modules/.bin/vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "^0.0.316",
+    "rollup-plugin-copy": "^3.5.0",
+    "tsconfig": "^7.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2"
+  }
+}
