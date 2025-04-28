@@ -3,8 +3,16 @@
 
   "compilerOptions": {
     "target": "ES2020",
-    "forceConsistentCasingInFileNames": true,
-    "types": ["chrome"]
+    "jsx": "react-jsx",
+    "types": ["chrome"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
   },
-  "include": ["./"]
+
+  "include": ["vite-env.d.ts","src"],
+
+  "exclude": ["node_modules"]
 }

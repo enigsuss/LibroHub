@@ -12,9 +12,14 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chrome": "^0.0.316",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
     "rollup-plugin-copy": "^3.5.0",
     "tsconfig": "^7.0.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.2"
+  },
+  "dependencies": {
+    "react-dom": "^19.1.0"
   }
 }

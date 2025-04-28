@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 apps/web/.env
+apps/extension/.env
 
 # vercel
 .vercel
