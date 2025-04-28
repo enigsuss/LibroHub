@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LibroHub Extension",
   "version": "1.0",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "identity", "activeTab", "scripting"],
   "background": {
     "service_worker": "background.js"
   },
@@ -13,7 +13,7 @@
     }
   ],
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_title": "LibroHub"
   }
 }

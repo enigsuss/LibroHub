@@ -6,13 +6,43 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      react:
+        specifier: ^19.1.0
+        version: 19.1.0
+    devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
+      eslint:
+        specifier: ^9.25.1
+        version: 9.25.1(jiti@1.21.7)
+      eslint-config-next:
+        specifier: ^15.3.1
+        version: 15.3.1(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3)
+      prettier:
+        specifier: ^3.5.3
+        version: 3.5.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
   apps/extension:
+    dependencies:
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.1.0(react@19.1.0)
     devDependencies:
       '@types/chrome':
         specifier: ^0.0.316
         version: 0.0.316
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.1.2
+      '@types/react-dom':
+        specifier: ^19.1.1
+        version: 19.1.2(@types/react@19.1.2)
       rollup-plugin-copy:
         specifier: ^3.5.0
         version: 3.5.0
@@ -52,16 +82,10 @@ importers:
       next:
         specifier: 15.1.6
         version: 15.1.6(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      react:
-        specifier: ^19.1.0
-        version: 19.1.0
       react-dom:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
     devDependencies:
-      '@eslint/eslintrc':
-        specifier: ^3.3.1
-        version: 3.3.1
       '@playwright/test':
         specifier: ^1.51.1
         version: 1.52.0
@@ -74,27 +98,15 @@ importers:
       '@types/react-dom':
         specifier: ^19.1.1
         version: 19.1.2(@types/react@19.1.2)
-      eslint:
-        specifier: ^9.24.0
-        version: 9.25.1(jiti@1.21.7)
-      eslint-config-next:
-        specifier: 15.1.6
-        version: 15.1.6(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3)
       playwright:
         specifier: ^1.51.1
         version: 1.52.0
       postcss:
         specifier: ^8.5.3
         version: 8.5.3
-      prettier:
-        specifier: ^3.5.3
-        version: 3.5.3
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.17
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
 
 packages:
 
@@ -580,8 +592,8 @@ packages:
   '@next/env@15.1.6':
     resolution: {integrity: sha512-d9AFQVPEYNr+aqokIiPLNK/MTyt3DWa/dpKveiAaVccUadFbhFEvY6FXYX2LJO2Hv7PHnLBu2oWwB4uBuHjr/w==}
 
-  '@next/eslint-plugin-next@15.1.6':
-    resolution: {integrity: sha512-+slMxhTgILUntZDGNgsKEYHUvpn72WP1YTlkmEhS51vnVd7S9jEEy0n9YAMcI21vUG4akTw9voWH02lrClt/yw==}
+  '@next/eslint-plugin-next@15.3.1':
+    resolution: {integrity: sha512-oEs4dsfM6iyER3jTzMm4kDSbrQJq8wZw5fmT6fg2V3SMo+kgG+cShzLfEV20senZzv8VF+puNLheiGPlBGsv2A==}
 
   '@next/swc-darwin-arm64@15.1.6':
     resolution: {integrity: sha512-u7lg4Mpl9qWpKgy6NzEkz/w0/keEHtOybmIl0ykgItBxEM5mYotS5PmqTpo+Rhg8FiOiWgwr8USxmKQkqLBCrw==}
@@ -1429,8 +1441,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-config-next@15.1.6:
-    resolution: {integrity: sha512-Wd1uy6y7nBbXUSg9QAuQ+xYEKli5CgUhLjz1QHW11jLDis5vK5XB3PemL6jEmy7HrdhaRFDz+GTZ/3FoH+EUjg==}
+  eslint-config-next@15.3.1:
+    resolution: {integrity: sha512-GnmyVd9TE/Ihe3RrvcafFhXErErtr2jS0JDeCSp3vWvy86AXwHsRBt0E3MqP/m8ACS1ivcsi5uaqjbhsG18qKw==}
     peerDependencies:
       eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
       typescript: '>=3.3.1'
@@ -3256,7 +3268,7 @@ snapshots:
 
   '@next/env@15.1.6': {}
 
-  '@next/eslint-plugin-next@15.1.6':
+  '@next/eslint-plugin-next@15.3.1':
     dependencies:
       fast-glob: 3.3.1
 
@@ -4128,9 +4140,9 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-next@15.1.6(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3):
+  eslint-config-next@15.3.1(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3):
     dependencies:
-      '@next/eslint-plugin-next': 15.1.6
+      '@next/eslint-plugin-next': 15.3.1
       '@rushstack/eslint-patch': 1.11.0
       '@typescript-eslint/eslint-plugin': 8.31.0(@typescript-eslint/parser@8.31.0(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3))(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3)
       '@typescript-eslint/parser': 8.31.0(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3)
