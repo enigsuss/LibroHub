@@ -11,59 +11,21 @@ function App() {
     })();
   }, []);
 
-  const handleKakaoLogin = async () => {
-    const REDIRECT_URI = chrome.identity.getRedirectURL();
-    const REST_API_KEY = import.meta.env.VITE_REST_API_KEY;
-    if (!REST_API_KEY) {
-      console.error('REST_API_KEY가 설정되지 않았습니다.');
-      alert('환경 변수 설정 오류');
-      return;
-    }
-    const authUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}
-`;
-
-    try {
-      const resultUrl = await new Promise<string>((resolve, reject) => {
-        chrome.identity.launchWebAuthFlow(
-          {
-            url: authUrl,
-            interactive: true,
-          },
-          (redirectedTo) => {
-            if (chrome.runtime.lastError || !redirectedTo) {
-              reject(chrome.runtime.lastError);
-            } else {
-              resolve(redirectedTo);
-            }
-          }
-        );
-      });
-
-      const url = new URL(resultUrl);
-      const queryParams = new URLSearchParams(url.search);
-      const code = queryParams.get('code');
-
-      if (code) {
-        await fetch('http://localhost:5001/auth/callback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code }),
-        });
-
-        alert('서버로 인가 코드 전송 완료');
+  const handleKakaoLogin = () => {
+    chrome.runtime.sendMessage({ type: 'LOGIN_REQUEST' }, (response) => {
+      if (response?.success) {
+        alert('로그인 성공');
+        setIsLoggedIn(true);
+        window.close();
       } else {
-        alert('로그인 실패: code가 없습니다.');
+        alert(`로그인 실패: ${response?.error}`);
       }
-    } catch (error) {
-      console.error('OAuth 로그인 실패', error);
-    }
+    });
   };
 
   const handleKakaoLogout = async () => {
     try {
-      const REST_API_KEY = import.meta.env.VITE_REST_API_KEY;
+      const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
       const LOGOUT_REDIRECT_URI = chrome.identity.getRedirectURL();
 
       if (!REST_API_KEY) {
@@ -73,8 +35,28 @@ function App() {
       }
 
       const logoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
-
-      window.open(logoutUrl, '_blank', 'width=500,height=600');
+      const redirectedTo = await new Promise<string>((resolve, reject) => {
+        chrome.identity.launchWebAuthFlow(
+          {
+            url: logoutUrl,
+            interactive: true,
+          },
+          (redirectUrl) => {
+            if (chrome.runtime.lastError || !redirectUrl) {
+              reject(chrome.runtime.lastError || new Error('리디렉션 실패'));
+            } else {
+              resolve(redirectUrl);
+            }
+          }
+        );
+      });
+      // 로그아웃 성공 후 리디렉션이 이뤄졌을 때만 로그아웃 처리
+      if (redirectedTo.startsWith(LOGOUT_REDIRECT_URI)) {
+        await chrome.storage.local.remove('accessToken');
+        setIsLoggedIn(false);
+      } else {
+        console.warn('로그아웃 리디렉션되지 않음:', redirectedTo);
+      }
     } catch (error) {
       console.error('카카오 로그아웃 실패', error);
     }
@@ -96,7 +78,6 @@ function App() {
         <>
           <h1>로그인 필요</h1>
           <button onClick={handleKakaoLogin}>로그인하기</button>
-          <button onClick={handleKakaoLogout}>카카오계정 로그아웃</button>
         </>
       )}
     </div>
