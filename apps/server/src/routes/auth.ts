@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Router, Request, Response } from 'express';
+import { encrypt } from '../utils/encrypt';
 import axios from 'axios';
 import 'dotenv/config';
 
@@ -40,13 +41,13 @@ router.post('/callback', async (req: Request, res: Response) => {
     const user = await prisma.users.upsert({
       where: { provider_id: String(providerId) },
       update: {
-        refresh_token: refresh_token,
+        refresh_token: encrypt(refresh_token),
         nickname,
       },
       create: {
         provider: 'kakao',
         provider_id: String(providerId),
-        refresh_token,
+        refresh_token: encrypt(refresh_token),
         nickname,
       },
     });
