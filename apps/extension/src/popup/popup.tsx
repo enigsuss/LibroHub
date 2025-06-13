@@ -98,27 +98,42 @@ function App() {
     }
   };
 
-  const handleKyoboLogout = async () => {
+  const handleSiteLogout = async (site: Site) => {
+    const logoutSiteUrlObj = {
+      kyobo: 'https://mmbr.kyobobook.co.kr/sso/logout',
+      yes24: '',
+      aladin: 'http://www.aladin.co.kr/login/wlogout.aspx',
+      ridi: 'https://ridibooks.com/account/logout',
+    };
     try {
-      const response = await fetch('https://mmbr.kyobobook.co.kr/sso/logout', {
+      const response = await fetch(logoutSiteUrlObj[site], {
         method: 'GET',
         credentials: 'include',
       });
 
       if (response.ok) {
-        await chrome.storage.local.remove('kyoboTokens');
-        setIsKyoboLoggedIn(false);
+        await chrome.storage.local.remove(site + 'Tokens');
+        switch (site) {
+          case 'kyobo':
+            setIsKyoboLoggedIn(false);
+            break;
+          case 'yes24':
+            setisYes24LoggedIn(false);
+            break;
+          case 'aladin':
+            setisAladinLoggedIn(false);
+            break;
+          case 'ridi':
+            setisRidiLoggedIn(false);
+            break;
+        }
       } else {
-        console.warn('교보문고 로그아웃 실패:', response.status);
+        console.warn('로그아웃 실패 : ' + site, response.status);
       }
     } catch (error) {
-      console.error('교보문고 로그아웃 중 오류 발생:', error);
+      console.error('로그아웃 중 오류 발생 : ' + site, error);
     }
   };
-
-  const handleYes24Logout = () => {};
-  const handleAladinLogout = () => {};
-  const handleRidiLogout = () => {};
 
   if (isLoggedIn === null) {
     return <div>로딩 중...</div>;
@@ -130,28 +145,28 @@ function App() {
       key: 'kyobo',
       isLoggedIn: isKyoboLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'kyobo' }),
-      onLogout: handleKyoboLogout,
+      onLogout: () => handleSiteLogout('kyobo'),
     },
     {
       name: 'Yes24',
       key: 'yes24',
       isLoggedIn: isYes24LoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'yes24' }),
-      onLogout: handleYes24Logout,
+      onLogout: () => handleSiteLogout('yes24'),
     },
     {
       name: '알라딘',
       key: 'aladin',
       isLoggedIn: isAladinLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'aladin' }),
-      onLogout: handleAladinLogout,
+      onLogout: () => handleSiteLogout('aladin'),
     },
     {
       name: '리디',
       key: 'ridi',
       isLoggedIn: isRidiLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'ridi' }),
-      onLogout: handleRidiLogout,
+      onLogout: () => handleSiteLogout('ridi'),
     },
   ];
 
