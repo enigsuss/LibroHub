@@ -3,12 +3,33 @@ import { createRoot } from 'react-dom/client';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isKyoboLoggedIn, setIsKyoboLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { accessToken } = await chrome.storage.local.get('accessToken');
+      const { accessToken } = await chrome.storage.local.get(['accessToken']);
       setIsLoggedIn(!!accessToken);
     })();
+  }, []);
+
+  useEffect(() => {
+    console.log('리스너 등록됨');
+    const listener = async (message: { type: string; site: string; action: string }) => {
+      console.log('수신한 메시지:', message);
+      if (message.type === 'SESSION' && message.site === 'kyobo' && message.action === 'active') {
+        setIsKyoboLoggedIn(true);
+        console.log('true');
+      } else {
+        chrome.storage.local.remove('kyoboTokens').then(() => {
+          setIsKyoboLoggedIn(false);
+          console.log('false');
+        });
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    chrome.runtime.sendMessage({ type: 'SESSION_PING', site: 'kyobo' });
+
+    return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
   const handleKakaoLogin = () => {
@@ -62,6 +83,24 @@ function App() {
     }
   };
 
+  const handleKyoboLogout = async () => {
+    try {
+      const response = await fetch('https://mmbr.kyobobook.co.kr/sso/logout', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        await chrome.storage.local.remove('kyoboTokens');
+        setIsKyoboLoggedIn(false);
+      } else {
+        console.warn('교보문고 로그아웃 실패:', response.status);
+      }
+    } catch (error) {
+      console.error('교보문고 로그아웃 중 오류 발생:', error);
+    }
+  };
+
   if (isLoggedIn === null) {
     return <div>로딩 중...</div>;
   }
@@ -73,6 +112,26 @@ function App() {
           <h1>LibroHub</h1>
           <button onClick={() => console.log('스크래핑 시작')}>스크래핑 시작</button>
           <button onClick={handleKakaoLogout}>카카오계정 로그아웃</button>
+
+          {isKyoboLoggedIn ? (
+            <>
+              <button onClick={handleKyoboLogout}>교보문고 로그아웃</button>
+              <button onClick={() => chrome.runtime.sendMessage({ type: 'GET_BOOKS' })}>책!</button>
+            </>
+          ) : (
+            <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_KY' })}>
+              교보문고 로그인
+            </button>
+          )}
+          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_YE' })}>
+            yes24 로그인
+          </button>
+          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_AL' })}>
+            알라딘 로그인
+          </button>
+          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_RI' })}>
+            리디 로그인
+          </button>
         </>
       ) : (
         <>

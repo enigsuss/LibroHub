@@ -2,9 +2,15 @@
   "manifest_version": 3,
   "name": "LibroHub Extension",
   "version": "1.0",
-  "permissions": ["storage", "identity", "activeTab", "scripting"],
+  "permissions": ["storage", "identity", "activeTab", "scripting", "cookies", "alarms"],
+  "host_permissions": [
+    "https://www.kyobobook.co.kr/*",
+    "https://mmbr.kyobobook.co.kr/*",
+    "https://elibrary.kyobobook.co.kr/*"
+  ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
