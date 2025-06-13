@@ -1,9 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { SiteLoginControl } from './SiteLoginControl';
+import { Site } from '../types/site';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isKyoboLoggedIn, setIsKyoboLoggedIn] = useState<boolean | null>(null);
+  const [isYes24LoggedIn, setisYes24LoggedIn] = useState<boolean | null>(null);
+  const [isAladinLoggedIn, setisAladinLoggedIn] = useState<boolean | null>(null);
+  const [isRidiLoggedIn, setisRidiLoggedIn] = useState<boolean | null>(null);
+
+  const loggedInSetters = useMemo(
+    () => ({
+      kyobo: setIsKyoboLoggedIn,
+      yes24: setisYes24LoggedIn,
+      aladin: setisAladinLoggedIn,
+      ridi: setisRidiLoggedIn,
+    }),
+    []
+  );
 
   useEffect(() => {
     (async () => {
@@ -14,23 +29,23 @@ function App() {
 
   useEffect(() => {
     console.log('리스너 등록됨');
-    const listener = async (message: { type: string; site: string; action: string }) => {
+    const listener = async (message: { type: string; site: Site; action: string }) => {
       console.log('수신한 메시지:', message);
-      if (message.type === 'SESSION' && message.site === 'kyobo' && message.action === 'active') {
-        setIsKyoboLoggedIn(true);
+      if (message.type === 'SESSION' && message.site && message.action === 'active') {
+        loggedInSetters[message.site](true);
         console.log('true');
       } else {
-        chrome.storage.local.remove('kyoboTokens').then(() => {
-          setIsKyoboLoggedIn(false);
+        chrome.storage.local.remove(message.site + 'Tokens').then(() => {
+          loggedInSetters[message.site](false);
           console.log('false');
         });
       }
     };
     chrome.runtime.onMessage.addListener(listener);
-    chrome.runtime.sendMessage({ type: 'SESSION_PING', site: 'kyobo' });
+    chrome.runtime.sendMessage({ type: 'SESSION_PING', site: 'all' });
 
     return () => chrome.runtime.onMessage.removeListener(listener);
-  }, []);
+  }, [loggedInSetters]);
 
   const handleKakaoLogin = () => {
     chrome.runtime.sendMessage({ type: 'LOGIN_REQUEST' }, (response) => {
@@ -101,9 +116,44 @@ function App() {
     }
   };
 
+  const handleYes24Logout = () => {};
+  const handleAladinLogout = () => {};
+  const handleRidiLogout = () => {};
+
   if (isLoggedIn === null) {
     return <div>로딩 중...</div>;
   }
+
+  const siteConfigs = [
+    {
+      name: '교보문고',
+      key: 'kyobo',
+      isLoggedIn: isKyoboLoggedIn,
+      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'kyobo' }),
+      onLogout: handleKyoboLogout,
+    },
+    {
+      name: 'Yes24',
+      key: 'yes24',
+      isLoggedIn: isYes24LoggedIn,
+      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'yes24' }),
+      onLogout: handleYes24Logout,
+    },
+    {
+      name: '알라딘',
+      key: 'aladin',
+      isLoggedIn: isAladinLoggedIn,
+      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'aladin' }),
+      onLogout: handleAladinLogout,
+    },
+    {
+      name: '리디',
+      key: 'ridi',
+      isLoggedIn: isRidiLoggedIn,
+      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'ridi' }),
+      onLogout: handleRidiLogout,
+    },
+  ];
 
   return (
     <div style={{ padding: 20, minWidth: 250 }}>
@@ -113,25 +163,15 @@ function App() {
           <button onClick={() => console.log('스크래핑 시작')}>스크래핑 시작</button>
           <button onClick={handleKakaoLogout}>카카오계정 로그아웃</button>
 
-          {isKyoboLoggedIn ? (
-            <>
-              <button onClick={handleKyoboLogout}>교보문고 로그아웃</button>
-              <button onClick={() => chrome.runtime.sendMessage({ type: 'GET_BOOKS' })}>책!</button>
-            </>
-          ) : (
-            <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_KY' })}>
-              교보문고 로그인
-            </button>
-          )}
-          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_YE' })}>
-            yes24 로그인
-          </button>
-          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_AL' })}>
-            알라딘 로그인
-          </button>
-          <button onClick={() => chrome.runtime.sendMessage({ type: 'LOGIN_RI' })}>
-            리디 로그인
-          </button>
+          {siteConfigs.map((site) => (
+            <SiteLoginControl
+              key={site.key}
+              name={site.name}
+              isLoggedIn={site.isLoggedIn}
+              onLogin={site.onLogin}
+              onLogout={site.onLogout}
+            />
+          ))}
         </>
       ) : (
         <>

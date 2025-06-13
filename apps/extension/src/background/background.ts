@@ -1,5 +1,5 @@
 import { handleKakaoLogin } from './handlers/authHandler';
-import { getBooks, handleKYLogin, sendSessionPing } from './handlers/kyHandler';
+import { getBooks, handleSiteLogin, sendSessionPing } from './handlers/siteHandler';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('LibroHub Extension installed!');
@@ -48,10 +48,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleKakaoLogin(sendResponse);
     return true;
   }
-  if (message.type === 'LOGIN_KY') {
-    handleKYLogin(sendResponse)
+  if (message.type === 'LOGIN') {
+    handleSiteLogin(sendResponse, message.site)
       .then(() => {
-        getBooks();
+        //getBooks();
         sendResponse({ success: true });
       })
       .catch((err) => {
@@ -64,6 +64,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     getBooks();
   }
   if (message.type === 'SESSION_PING') {
-    sendSessionPing('kyobo');
+    if (message.site === 'all') {
+      const supportedSites = ['kyobo', 'yes24', 'aladin', 'ridi'] as const;
+      supportedSites.forEach((site) => sendSessionPing(site));
+    }
+    sendSessionPing(message.site);
   }
 });
