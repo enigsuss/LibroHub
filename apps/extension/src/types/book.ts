@@ -1,3 +1,13 @@
+// Normalized book type for all providers
+export type NormalizedBook = {
+  title: string;
+  author: string;
+  image: string;
+  link: string;
+  orderDate: string;
+  usagePeriod: string;
+};
+
 export type KyoboBook = {
   mmbrNum: string;
   nowBook: unknown;
@@ -49,6 +59,36 @@ export type KyoboBook = {
   webvwYsno: string;
   artlNum: string | null;
 };
+export type AladinBook = {
+  title: string;
+  author: string;
+  image: string;
+  link: string;
+  orderDate: string;
+  usagePeriod: string;
+};
+
+export type RidiBook = {
+  b_id: string;
+  purchase_date: string;
+  expire_date: string;
+  service_type: string;
+  is_ridiselect: boolean;
+  remain_time: string;
+  unit_count: number;
+  unit_id: number;
+  unit_title: string;
+  unit_type: string;
+  unit_type_int: number;
+};
+
+export type RidiBookListResponse = {
+  items: RidiBook[];
+  server_info: {
+    server_date: string;
+  };
+};
+
 export type KyoboBookListResponse = {
   data: KyoboBook[];
   statusCode: number;

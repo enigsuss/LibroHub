@@ -1,4 +1,4 @@
-import { KyoboBook } from '../../types/book';
+import { KyoboBook, NormalizedBook, RidiBook } from '../../types/book';
 
 export const getKyoboBooks = () => {
   chrome.cookies.getAll({ domain: 'elibrary.kyobobook.co.kr' }, async (cookies) => {
@@ -57,7 +57,8 @@ export const getKyoboBooks = () => {
     while (await fetchPage(currentPage)) {
       currentPage++;
     }
-    console.log('전체 도서 목록 : Kyobo', allBooks);
+    const normalizedBook = normalizeKyoboBooks(allBooks);
+    console.log('전체 도서 목록 : Kyobo', normalizedBook);
   });
 };
 
@@ -73,7 +74,7 @@ export const getAladinBooks = async () => {
   let match;
   while ((match = bookRegex.exec(html)) !== null) {
     const image = match[1]?.trim();
-    const link = match[2]?.trim();
+    const link = 'https://www.aladin.co.kr' + match[2]?.trim();
     const title = match[3]?.trim();
     const author = match[4]?.trim();
     const orderDate = match[5]?.trim();
@@ -97,5 +98,28 @@ export const getRidiBooks = async () => {
     }
   );
   const data = await res.json();
-  console.log('리디 도서 목록 : ', data);
+  const normalizedBook = normalizeRidiBooks(data.items);
+  console.log('리디 도서 목록 : ', normalizedBook);
+};
+
+const normalizeKyoboBooks = (rawBooks: KyoboBook[]): NormalizedBook[] => {
+  return rawBooks.map((b) => ({
+    title: b.cmdtHnglName ?? '',
+    author: b.cmdtChrcName ?? '',
+    image: b.imgUrl ? `https://elibrary.kyobobook.co.kr/upload/book/${b.imgUrl}` : '',
+    link: 'https://ebook-product.kyobobook.co.kr/dig/epd/ebook/' + b.ordrSaleCmdtid,
+    orderDate: b.buyDate ?? '',
+    usagePeriod: '',
+  }));
+};
+
+const normalizeRidiBooks = (rawBooks: RidiBook[]): NormalizedBook[] => {
+  return rawBooks.map((b) => ({
+    title: b.unit_title ?? '',
+    author: '',
+    image: '',
+    link: '',
+    orderDate: b.purchase_date?.split('T')[0] ?? '',
+    usagePeriod: '',
+  }));
 };
