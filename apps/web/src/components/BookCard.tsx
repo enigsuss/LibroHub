@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import type { Book } from '@/types/book';
+import type { NormalizedBook } from '@/types/book';
 
-export default function BookCard({ book }: { book: Book }) {
+export default function BookCard({ book }: { book: NormalizedBook }) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <Image
@@ -15,7 +15,7 @@ export default function BookCard({ book }: { book: Book }) {
         <h3 className="font-bold text-lg mb-2 truncate">{book.title}</h3>
         <p className="text-gray-600 text-sm mb-2">{book.author}</p>
         <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-          {book.service}
+          {book.site}
         </span>
       </div>
     </div>

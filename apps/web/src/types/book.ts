@@ -15,3 +15,13 @@ export interface Book {
   url?: string;
   usagePeriod?: string;
 }
+
+export type NormalizedBook = {
+  title: string;
+  author: string;
+  image: string;
+  link: string;
+  orderDate: string;
+  usagePeriod: string;
+  site: string;
+};

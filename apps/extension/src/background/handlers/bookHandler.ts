@@ -83,7 +83,8 @@ export const getAladinBooks = async () => {
     const author = match[4]?.trim();
     const orderDate = match[5]?.trim();
     const usagePeriod = match[6]?.trim();
-    books.push({ title, author, image, link, orderDate, usagePeriod });
+    const site = 'aladin';
+    books.push({ title, author, image, link, orderDate, usagePeriod, site });
   }
 
   console.log('알라딘 도서 목록:', books);
@@ -111,10 +112,11 @@ const normalizeKyoboBooks = (rawBooks: KyoboBook[]): NormalizedBook[] => {
   return rawBooks.map((b) => ({
     title: b.cmdtHnglName ?? '',
     author: b.cmdtChrcName ?? '',
-    image: b.imgUrl ? `https://elibrary.kyobobook.co.kr/upload/book/${b.imgUrl}` : '',
+    image: b.imgUrl ? `https://contents.kyobobook.co.kr/sih/fit-in/690x1030/pdt/${b.imgUrl}` : '',
     link: 'https://ebook-product.kyobobook.co.kr/dig/epd/ebook/' + b.ordrSaleCmdtid,
     orderDate: b.buyDate ?? '',
     usagePeriod: '',
+    site: 'kyobo',
   }));
 };
 
@@ -122,9 +124,10 @@ const normalizeRidiBooks = (rawBooks: RidiBook[]): NormalizedBook[] => {
   return rawBooks.map((b) => ({
     title: b.unit_title ?? '',
     author: '',
-    image: '',
+    image: `https://img.ridicdn.net/cover/${b.b_id}/xxlarge#1?dpi=xhdpi`,
     link: '',
     orderDate: b.purchase_date?.split('T')[0] ?? '',
     usagePeriod: '',
+    site: 'ridi',
   }));
 };

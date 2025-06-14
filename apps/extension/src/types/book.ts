@@ -6,6 +6,7 @@ export type NormalizedBook = {
   link: string;
   orderDate: string;
   usagePeriod: string;
+  site: string;
 };
 
 export type KyoboBook = {
