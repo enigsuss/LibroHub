@@ -76,4 +76,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     sendSessionPing(message.site);
   }
+  if (message.type === 'FETCH_BOOKS') {
+    console.log('EXTENSION :: received Message :: FETCH_BOOKS');
+    console.log(message);
+
+    const { site } = message;
+
+    if (site === 'all') {
+      Promise.all([getKyoboBooks(), getAladinBooks(), getRidiBooks()])
+        .then(([kyoboBooks, aladinBooks, ridiBooks]) => {
+          const merged = {
+            kyobo: kyoboBooks,
+            aladin: aladinBooks,
+            ridi: ridiBooks,
+          };
+          sendResponse({ books: merged });
+        })
+        .catch((err) => {
+          console.error('Error fetching all books:', err);
+          sendResponse({ error: err.message });
+        });
+      return true;
+    }
+
+    if (site === 'ridi') {
+      getRidiBooks().then((books) => sendResponse({ books }));
+      return true;
+    }
+
+    if (site === 'aladin') {
+      getAladinBooks().then((books) => sendResponse({ books }));
+      return true;
+    }
+
+    if (site === 'kyobo') {
+      getKyoboBooks().then((books) => sendResponse({ books }));
+      return true;
+    }
+  }
 });

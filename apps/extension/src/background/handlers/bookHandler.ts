@@ -1,65 +1,69 @@
 import { KyoboBook, NormalizedBook, RidiBook } from '../../types/book';
 
-export const getKyoboBooks = () => {
-  chrome.cookies.getAll({ domain: 'elibrary.kyobobook.co.kr' }, async (cookies) => {
-    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+export const getKyoboBooks = async (): Promise<NormalizedBook[]> => {
+  const cookies = await chrome.cookies.getAll({ domain: 'elibrary.kyobobook.co.kr' });
+  const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
 
-    const allBooks: KyoboBook[] = [];
-    const fetchPage = async (page: number): Promise<boolean> => {
-      try {
-        const response = await fetch(
-          'https://elibrary.kyobobook.co.kr/dig/api/v1/elb/elibrary/selectMyBookList',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Cookie: cookieHeader,
-            },
-            body: JSON.stringify({
-              page,
-              per: 10,
-              categoryYn: 'N',
-              mainCategoryYn: 'N',
-              subCategoryYn: 'N',
-              dgctSaleCmdtDvsnCode: null,
-              dgctSaleFrDvsnCode: '',
-              dgctCmdtDsplClstCode: null,
-              cmdtHngName: null,
-              filterYn: 'N',
-              mmbrNum: '',
-              orderBy: null,
-              buyForm: '',
-              bksCount: 0,
-              samYn: 'N',
-              searchYn: 'N',
-            }),
-            credentials: 'include',
-          }
-        );
+  const allBooks: KyoboBook[] = [];
 
-        if (!response.ok) {
-          console.warn(`도서 목록 요청 실패 (page ${page}):`, await response.text());
-          return false;
+  const fetchPage = async (page: number): Promise<boolean> => {
+    try {
+      const res = await fetch(
+        'https://elibrary.kyobobook.co.kr/dig/api/v1/elb/elibrary/selectMyBookList',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: cookieHeader,
+          },
+          body: JSON.stringify({
+            page,
+            per: 10,
+            categoryYn: 'N',
+            mainCategoryYn: 'N',
+            subCategoryYn: 'N',
+            dgctSaleCmdtDvsnCode: null,
+            dgctSaleFrDvsnCode: '',
+            dgctCmdtDsplClstCode: null,
+            cmdtHngName: null,
+            filterYn: 'N',
+            mmbrNum: '',
+            orderBy: null,
+            buyForm: '',
+            bksCount: 0,
+            samYn: 'N',
+            searchYn: 'N',
+          }),
+          credentials: 'include',
         }
-        const data = await response.json();
-        if (Array.isArray(data.data) && data.data.length > 0) {
-          allBooks.push(...data.data);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        console.error(`도서 목록 요청 중 오류 (page ${page}):`, error);
+      );
+
+      if (!res.ok) {
+        console.warn(`도서 목록 요청 실패 (page ${page}):`, await res.text());
         return false;
       }
-    };
-    let currentPage = 1;
-    while (await fetchPage(currentPage)) {
-      currentPage++;
+
+      const data = await res.json();
+      if (Array.isArray(data.data) && data.data.length > 0) {
+        allBooks.push(...data.data);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error('도서 목록 요청 중 에러:', e);
+      return false;
     }
-    const normalizedBook = normalizeKyoboBooks(allBooks);
-    console.log('전체 도서 목록 : Kyobo', normalizedBook);
-  });
+  };
+
+  let page = 1;
+  while (await fetchPage(page)) {
+    page++;
+  }
+
+  const normalized = normalizeKyoboBooks(allBooks);
+  console.log('교보 도서 목록:', normalized);
+  return normalized;
 };
 
 export const getAladinBooks = async () => {
@@ -100,6 +104,7 @@ export const getRidiBooks = async () => {
   const data = await res.json();
   const normalizedBook = normalizeRidiBooks(data.items);
   console.log('리디 도서 목록 : ', normalizedBook);
+  return normalizedBook;
 };
 
 const normalizeKyoboBooks = (rawBooks: KyoboBook[]): NormalizedBook[] => {

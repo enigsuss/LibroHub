@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import BookCard from '@/components/BookCard';
 import type { Book } from '@/types/book';
 import { useQuery } from '@apollo/client';
@@ -50,6 +50,22 @@ import { GET_BOOKS_BY_USER } from '@/graphql/queries';
 
 export default function Home() {
   const { loading, error, data } = useQuery(GET_BOOKS_BY_USER, { variables: { userId: '1' } });
+  const [externalBooks, setExternalBooks] = useState([]);
+
+  useEffect(() => {
+    console.log('postMessage : FETCH_BOOKS');
+    window.postMessage({ type: 'FETCH_BOOKS', site: 'all' }, '*');
+
+    const handler = (event: MessageEvent) => {
+      if (event.data.type === 'BOOKS_RECEIVED') {
+        console.log('도서 목록 도착', event.data.books);
+        setExternalBooks(event.data.books);
+      }
+    };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error occurred: {error.message}</p>;
@@ -58,6 +74,7 @@ export default function Home() {
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">My Ebook Library</h1>
       <Suspense fallback={<div>Loading...</div>}>
+        <div>{externalBooks.length}</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {data.booksByUser.map((book: Book) => (
             <BookCard key={book.id} book={book} />
