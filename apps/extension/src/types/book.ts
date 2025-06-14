@@ -83,6 +83,23 @@ export type RidiBook = {
   unit_type_int: number;
 };
 
+export type Yes24Book = {
+  title: string;
+  author: string;
+  publisher: string;
+  pubDate: string;
+  price: string;
+  image: string;
+  link: string;
+  orderDate: string;
+  usagePeriod: string;
+  site: string;
+};
+export type Yes24BookListResponse = {
+  recentGoods: Yes24Book[];
+  recentGoodsCount: number;
+};
+
 export type RidiBookListResponse = {
   items: RidiBook[];
   server_info: {

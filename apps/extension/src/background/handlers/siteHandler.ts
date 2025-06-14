@@ -1,10 +1,11 @@
 import { Site } from '../../types/site';
-import { getAladinBooks, getKyoboBooks } from './bookHandler';
+import { getAladinBooks, getKyoboBooks, getRidiBooks, getYes24Books } from './bookHandler';
 
 export const handleSiteLogin = (
   sendResponse: (res: { success: boolean; site?: string; error?: string }) => void,
   site: Site
 ): Promise<void> => {
+  console.log('handleSiteLogin : ', site);
   return new Promise((resolve, reject) => {
     try {
       const siteLoginObj = {
@@ -20,13 +21,13 @@ export const handleSiteLogin = (
           refreshTokenName: 'refreshToken',
         },
         yes24: {
-          loginUrl: '',
-          redirectUrl: '',
-          loginHostname: '',
-          mainHostname: '',
-          loginPathPrefix: '',
-          redirectPathPrefix: '',
-          accessTokenName: '',
+          loginUrl: 'https://www.yes24.com/Templates/FTLogin.aspx',
+          redirectUrl: 'https://www.yes24.com/Main/default.aspx',
+          loginHostname: 'www.yes24.com',
+          mainHostname: 'www.yes24.com',
+          loginPathPrefix: '/Templates/FTLogin.aspx',
+          redirectPathPrefix: '/Main/default.aspx',
+          accessTokenName: 'ServiceCookies',
           refreshTokenName: '',
         },
         aladin: {
@@ -59,7 +60,7 @@ export const handleSiteLogin = (
           if (updatedTabId === tabId && changeInfo.url) {
             const newUrl = changeInfo.url;
             const urlObj = new URL(newUrl);
-            console.log('[DEBUG] tab URL changed:', newUrl);
+
             if (
               urlObj.hostname === siteLoginObj[site].loginHostname &&
               urlObj.pathname.startsWith(siteLoginObj[site].loginPathPrefix)
@@ -135,9 +136,9 @@ export const sendSessionPing = (site: Site) => {
 const fetchSitePing = (site: Site) => {
   const pingUrlObj = {
     kyobo: { url: 'https://www.kyobobook.co.kr/api/user/info', method: 'GET' },
-    yes24: { url: '', method: '' },
+    yes24: { url: 'https://www.yes24.com/Member/FTMypageMain.aspx', method: 'GET' },
     aladin: {
-      url: 'https://www.aladin.co.kr/account/wmaininfo.aspx?pType=EBookOrders',
+      url: 'https://www.aladin.co.kr/account/wmaininfo.aspx?pType=MyAccount',
       method: 'GET',
     },
     ridi: { url: 'https://account.ridibooks.com/accounts/me', method: 'GET' },
@@ -169,25 +170,16 @@ const fetchSitePing = (site: Site) => {
       } else {
         responseData = await res.text();
       }
-      if (site === 'aladin') {
-        const short = responseData.slice(0, 1000);
-        const isLoggedOut = short.includes('로그인');
 
-        if (isLoggedOut) {
-          chrome.runtime.sendMessage({ type: 'SESSION', site, action: 'expired' });
-        } else {
-          chrome.runtime.sendMessage({ type: 'SESSION', site, action: 'active' });
-        }
-        return;
-      }
       if (
         res.ok &&
+        !res.redirected &&
         (!responseData || (responseData.statusCode !== 500 && responseData.statusCode !== 401))
       ) {
         console.log('로그인 상태 유지중 : ' + site);
         chrome.runtime.sendMessage({ type: 'SESSION', site, action: 'active' });
       } else {
-        console.warn('세션 확인 실패 : ' + site, responseData);
+        console.warn('세션 확인 실패 : ' + site);
         chrome.runtime.sendMessage({ type: 'SESSION', site, action: 'expired' });
       }
     } catch (err) {
@@ -203,11 +195,13 @@ export const getBooks = (site: Site) => {
       getKyoboBooks();
       break;
     case 'yes24':
+      getYes24Books();
       break;
     case 'aladin':
       getAladinBooks();
       break;
     case 'ridi':
+      getRidiBooks();
       break;
   }
 };

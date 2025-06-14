@@ -1,4 +1,4 @@
-import { KyoboBook, NormalizedBook, RidiBook } from '../../types/book';
+import { KyoboBook, NormalizedBook, RidiBook, Yes24Book } from '../../types/book';
 
 export const getKyoboBooks = async (): Promise<NormalizedBook[]> => {
   const cookies = await chrome.cookies.getAll({ domain: 'elibrary.kyobobook.co.kr' });
@@ -108,6 +108,59 @@ export const getRidiBooks = async () => {
   return normalizedBook;
 };
 
+export const getYes24Books = async () => {
+  const cookies = await chrome.cookies.getAll({ domain: 'yes24.com' });
+  const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+  const res = await fetch(
+    'https://www.yes24.com/Member/FTMyWebLibrary.aspx?goodsSortNo=00&pageNo=1&sortType=00&entrNo=0&pageSize=100&isShowImg=true&showExpireYn=Y',
+    {
+      headers: {
+        Cookie: cookieHeader,
+      },
+    }
+  );
+  const buffer = await res.arrayBuffer();
+  const decoder = new TextDecoder('euc-kr');
+  const html = decoder.decode(buffer);
+
+  const rowRegex = /<tr[^>]*class="firstRow"[^>]*>([\s\S]*?)<\/tr>/g;
+  const books = [];
+  let rowMatch;
+
+  while ((rowMatch = rowRegex.exec(html)) !== null) {
+    const row = rowMatch[1];
+
+    const title = /<strong class="name">([^<]+)<\/strong>/.exec(row)?.[1]?.trim() ?? '';
+    const author =
+      /<span class="myPg_auth">\s*([^<]+?)\s*저\s*<\/span>/.exec(row)?.[1]?.trim() ?? '';
+    const publisher = /<span class="myPg_pub">([^<]+)<\/span>/.exec(row)?.[1]?.trim() ?? '';
+    const pubDate = /<span class="myPg_date">([^<]+)<\/span>/.exec(row)?.[1]?.trim() ?? '';
+    const price = /<p class="myPg_price">\s*([^<]+)\s*<\/p>/.exec(row)?.[1]?.trim() ?? '';
+    const imageMatch = /<div class="myPg_img">[\s\S]*?<img src="([^"]+)"/.exec(row);
+    const image = imageMatch?.[1]?.trim() ?? '';
+    const link =
+      /<a href="(http:\/\/www\.yes24\.com\/product\/goods\/\d+)"/.exec(row)?.[1]?.trim() ?? '';
+    const orderDate = /<td class="pa0 ac">\s*([\d.]+)\s*<\/td>/.exec(row)?.[1]?.trim() ?? '';
+
+    books.push({
+      title,
+      author,
+      publisher,
+      pubDate,
+      price,
+      image,
+      link,
+      orderDate,
+      usagePeriod: '',
+      site: 'yes24',
+    });
+  }
+
+  const normalizedBooks = normalizeYes24Books(books);
+  console.log('Yes24 도서 목록:', normalizedBooks);
+  return normalizedBooks;
+};
+
 const normalizeKyoboBooks = (rawBooks: KyoboBook[]): NormalizedBook[] => {
   return rawBooks.map((b) => ({
     title: b.cmdtHnglName ?? '',
@@ -129,5 +182,17 @@ const normalizeRidiBooks = (rawBooks: RidiBook[]): NormalizedBook[] => {
     orderDate: b.purchase_date?.split('T')[0] ?? '',
     usagePeriod: '',
     site: 'ridi',
+  }));
+};
+
+const normalizeYes24Books = (rawBooks: Yes24Book[]): NormalizedBook[] => {
+  return rawBooks.map((b) => ({
+    title: b.title,
+    author: b.author,
+    image: b.image,
+    link: b.link,
+    orderDate: b.orderDate,
+    usagePeriod: b.usagePeriod,
+    site: b.site,
   }));
 };

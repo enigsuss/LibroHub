@@ -1,6 +1,6 @@
 import { handleKakaoLogin } from './handlers/authHandler';
 import { getBooks, handleSiteLogin, sendSessionPing } from './handlers/siteHandler';
-import { getAladinBooks, getKyoboBooks, getRidiBooks } from './handlers/bookHandler';
+import { getAladinBooks, getKyoboBooks, getRidiBooks, getYes24Books } from './handlers/bookHandler';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('LibroHub Extension installed!');
@@ -66,6 +66,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       getKyoboBooks();
       getAladinBooks();
       getRidiBooks();
+      getYes24Books();
     }
     getBooks(message.site);
   }
@@ -83,12 +84,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { site } = message;
 
     if (site === 'all') {
-      Promise.all([getKyoboBooks(), getAladinBooks(), getRidiBooks()])
-        .then(([kyoboBooks, aladinBooks, ridiBooks]) => {
+      Promise.all([getKyoboBooks(), getAladinBooks(), getRidiBooks(), getYes24Books()])
+        .then(([kyoboBooks, aladinBooks, ridiBooks, yes24Books]) => {
           const merged = {
             kyobo: kyoboBooks,
             aladin: aladinBooks,
             ridi: ridiBooks,
+            yes24: yes24Books,
           };
           sendResponse({ books: merged });
         })

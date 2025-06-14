@@ -5,14 +5,39 @@ type SiteLoginControlProps = {
   isLoggedIn: boolean | null;
   onLogin: () => void;
   onLogout: () => void;
+  imageSrc: string;
 };
 
-export function SiteLoginControl({ name, isLoggedIn, onLogin, onLogout }: SiteLoginControlProps) {
+export function SiteLoginControl({
+  name,
+  isLoggedIn,
+  onLogin,
+  onLogout,
+  imageSrc,
+}: SiteLoginControlProps) {
   if (isLoggedIn === null) return null;
 
   return isLoggedIn ? (
-    <button onClick={onLogout}>{name} 로그아웃</button>
+    <>
+      <img
+        src={imageSrc + '.png'}
+        alt={`${name}로그아웃`}
+        width={35}
+        height={35}
+        onClick={onLogout}
+        style={{ cursor: 'pointer', borderRadius: '8px', marginRight: '5px' }}
+      />
+    </>
   ) : (
-    <button onClick={onLogin}>{name} 로그인</button>
+    <>
+      <img
+        src={imageSrc + '_off.png'}
+        alt={`${name}로그인`}
+        width={35}
+        height={35}
+        onClick={onLogin}
+        style={{ cursor: 'pointer', borderRadius: '8px', marginRight: '5px' }}
+      />
+    </>
   );
 }

@@ -99,12 +99,16 @@ function App() {
   };
 
   const handleSiteLogout = async (site: Site) => {
+    const confirmLogout = window.confirm(`${site.toUpperCase()}에서 로그아웃 할까요?`);
+    if (!confirmLogout) return;
+
     const logoutSiteUrlObj = {
       kyobo: 'https://mmbr.kyobobook.co.kr/sso/logout',
-      yes24: '',
+      yes24: 'https://www.yes24.com/Templates/FTLogOut.aspx',
       aladin: 'http://www.aladin.co.kr/login/wlogout.aspx',
       ridi: 'https://ridibooks.com/account/logout',
     };
+
     try {
       const response = await fetch(logoutSiteUrlObj[site], {
         method: 'GET',
@@ -146,13 +150,7 @@ function App() {
       isLoggedIn: isKyoboLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'kyobo' }),
       onLogout: () => handleSiteLogout('kyobo'),
-    },
-    {
-      name: 'Yes24',
-      key: 'yes24',
-      isLoggedIn: isYes24LoggedIn,
-      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'yes24' }),
-      onLogout: () => handleSiteLogout('yes24'),
+      imageSrc: '/icons/logo_kyobo',
     },
     {
       name: '알라딘',
@@ -160,6 +158,7 @@ function App() {
       isLoggedIn: isAladinLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'aladin' }),
       onLogout: () => handleSiteLogout('aladin'),
+      imageSrc: '/icons/logo_aladin',
     },
     {
       name: '리디',
@@ -167,23 +166,41 @@ function App() {
       isLoggedIn: isRidiLoggedIn,
       onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'ridi' }),
       onLogout: () => handleSiteLogout('ridi'),
+      imageSrc: '/icons/logo_ridi',
+    },
+    {
+      name: 'Yes24',
+      key: 'yes24',
+      isLoggedIn: isYes24LoggedIn,
+      onLogin: () => chrome.runtime.sendMessage({ type: 'LOGIN', site: 'yes24' }),
+      onLogout: () => handleSiteLogout('yes24'),
+      imageSrc: '/icons/logo_yes24',
     },
   ];
 
   return (
-    <div style={{ padding: 20, minWidth: 250 }}>
+    <div style={{ padding: '5px 20px 20px 20px', minWidth: 250, borderRadius: 12 }}>
       {isLoggedIn ? (
         <>
-          <h1>LibroHub</h1>
-          <button onClick={handleKakaoLogout}>카카오계정 로그아웃</button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1>LibroHub</h1>
+            <img
+              src="/icons/kakao_signout.png"
+              alt="카카오계정 로그아웃"
+              width={27}
+              height={27}
+              onClick={handleKakaoLogout}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
+
           <button
             onClick={() => {
               chrome.runtime.sendMessage({ type: 'GET_BOOKS' });
             }}
           >
-            모든 도서목록 가져오기
+            도서목록 가져오기
           </button>
-
           {siteConfigs.map((site) => (
             <SiteLoginControl
               key={site.key}
@@ -191,13 +208,21 @@ function App() {
               isLoggedIn={site.isLoggedIn}
               onLogin={site.onLogin}
               onLogout={site.onLogout}
+              imageSrc={site.imageSrc}
             />
           ))}
         </>
       ) : (
         <>
-          <h1>로그인 필요</h1>
-          <button onClick={handleKakaoLogin}>로그인하기</button>
+          <h1>Librohub</h1>
+          <img
+            src="/icons/kakao_login_large_wide.png"
+            alt="카카오계정 로그인"
+            width={290}
+            height={40}
+            onClick={handleKakaoLogin}
+            style={{ cursor: 'pointer' }}
+          />
         </>
       )}
     </div>

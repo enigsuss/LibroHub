@@ -8,7 +8,9 @@
     "https://mmbr.kyobobook.co.kr/*",
     "https://elibrary.kyobobook.co.kr/*",
     "*://www.aladin.co.kr/*",
-    "*://ridibooks.com/*"
+    "*://ridibooks.com/*",
+    "*://www.yes24.com/*",
+    "*://yes24.com/*"
   ],
   "background": {
     "service_worker": "background.js",

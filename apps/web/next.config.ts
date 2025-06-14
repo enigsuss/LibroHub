@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         hostname: 'img.ridicdn.net',
         pathname: '/cover/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'image.yes24.com',
+        pathname: '/Goods/**',
+      },
     ],
   },
   /* config options here */
