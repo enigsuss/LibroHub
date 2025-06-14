@@ -1,7 +1,10 @@
+import { PrismaClient } from '@prisma/client';
 import { Router, Request, Response } from 'express';
+import { encrypt } from '../utils/encrypt';
 import axios from 'axios';
 import 'dotenv/config';
 
+const prisma = new PrismaClient();
 const router = Router();
 
 router.post('/callback', async (req: Request, res: Response) => {
@@ -9,7 +12,6 @@ router.post('/callback', async (req: Request, res: Response) => {
   if (!code) {
     return res.status(400).json({ error: 'No authorization code provided' });
   }
-  console.log('Received auth code:', code);
 
   try {
     const tokenResponse = await axios.post(
@@ -26,11 +28,35 @@ router.post('/callback', async (req: Request, res: Response) => {
     );
 
     const { access_token, refresh_token } = tokenResponse.data;
-    // todo : 로그 제거 예정
-    console.log('Access Token:', access_token);
-    console.log('Refresh Token:', refresh_token);
 
-    res.json({ message: 'Access Token received successfully', access_token });
+    const userInfoResponse = await axios.get('https://kapi.kakao.com/v2/user/me', {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    const providerId = userInfoResponse.data.id;
+    const nickname = userInfoResponse.data.kakao_account.profile.nickname;
+
+    const user = await prisma.users.upsert({
+      where: { provider_id: String(providerId) },
+      update: {
+        refresh_token: encrypt(refresh_token),
+        nickname,
+      },
+      create: {
+        provider: 'kakao',
+        provider_id: String(providerId),
+        refresh_token: encrypt(refresh_token),
+        nickname,
+      },
+    });
+
+    res.json({
+      message: 'Access Token received successfully',
+      access_token,
+      user_id: user.id,
+    });
   } catch (error) {
     console.error('Token issuance failed', error);
     res.status(500).json({ error: 'Token issuance failed' });

@@ -1,3 +1,73 @@
+import { handleKakaoLogin } from './handlers/authHandler';
+import { getBooks, handleSiteLogin, sendSessionPing } from './handlers/siteHandler';
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log('LibroHub Extension installed!');
+  chrome.alarms.create('keepKyoboSessionAlive', {
+    periodInMinutes: 5,
+  });
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'keepKyoboSessionAlive') {
+    console.log('AlarmListener');
+    sendSessionPing('kyobo');
+  }
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  chrome.storage.local.get(['kyoboTokens'], (result) => {
+    const tokens = result.kyoboTokens;
+    if (tokens?.accessToken && tokens?.refreshToken) {
+      console.log('Restoring Kyobo session using saved tokens.');
+
+      const cookies = [
+        { name: 'accessToken', value: tokens.accessToken },
+        { name: 'refreshToken', value: tokens.refreshToken },
+      ];
+      cookies.forEach(({ name, value }) => {
+        chrome.cookies.set({
+          url: 'https://www.kyobobook.co.kr',
+          name,
+          value,
+          domain: '.kyobobook.co.kr',
+          path: '/',
+          secure: true,
+          httpOnly: false,
+          sameSite: 'no_restriction',
+        });
+      });
+    } else {
+      console.log('No saved Kyobo tokens found.');
+    }
+  });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'LOGIN_REQUEST') {
+    handleKakaoLogin(sendResponse);
+    return true;
+  }
+  if (message.type === 'LOGIN') {
+    handleSiteLogin(sendResponse, message.site)
+      .then(() => {
+        //getBooks();
+        sendResponse({ success: true });
+      })
+      .catch((err) => {
+        console.error(err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true;
+  }
+  if (message.type === 'GET_BOOKS') {
+    getBooks();
+  }
+  if (message.type === 'SESSION_PING') {
+    if (message.site === 'all') {
+      const supportedSites = ['kyobo', 'yes24', 'aladin', 'ridi'] as const;
+      supportedSites.forEach((site) => sendSessionPing(site));
+    }
+    sendSessionPing(message.site);
+  }
 });
