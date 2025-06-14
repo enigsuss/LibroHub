@@ -1,4 +1,5 @@
 import { Site } from '../../types/site';
+import { getAladinBooks, getKyoboBooks } from './bookHandler';
 
 export const handleSiteLogin = (
   sendResponse: (res: { success: boolean; site?: string; error?: string }) => void,
@@ -196,122 +197,17 @@ const fetchSitePing = (site: Site) => {
   });
 };
 
-export const getBooks = () => {
-  chrome.cookies.getAll({ domain: 'elibrary.kyobobook.co.kr' }, async (cookies) => {
-    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
-
-    const allBooks: KyoboBook[] = [];
-    const fetchPage = async (page: number): Promise<boolean> => {
-      try {
-        const response = await fetch(
-          'https://elibrary.kyobobook.co.kr/dig/api/v1/elb/elibrary/selectMyBookList',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Cookie: cookieHeader,
-            },
-            body: JSON.stringify({
-              page,
-              per: 10,
-              categoryYn: 'N',
-              mainCategoryYn: 'N',
-              subCategoryYn: 'N',
-              dgctSaleCmdtDvsnCode: null,
-              dgctSaleFrDvsnCode: '',
-              dgctCmdtDsplClstCode: null,
-              cmdtHngName: null,
-              filterYn: 'N',
-              mmbrNum: '',
-              orderBy: null,
-              buyForm: '',
-              bksCount: 0,
-              samYn: 'N',
-              searchYn: 'N',
-            }),
-            credentials: 'include',
-          }
-        );
-
-        if (!response.ok) {
-          console.warn(`도서 목록 요청 실패 (page ${page}):`, await response.text());
-          return false;
-        }
-        const data = await response.json();
-        if (Array.isArray(data.data) && data.data.length > 0) {
-          allBooks.push(...data.data);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        console.error(`도서 목록 요청 중 오류 (page ${page}):`, error);
-        return false;
-      }
-    };
-    let currentPage = 1;
-    while (await fetchPage(currentPage)) {
-      currentPage++;
-    }
-    console.log('전체 도서 목록:', allBooks);
-  });
-};
-
-export type KyoboBook = {
-  mmbrNum: string;
-  nowBook: unknown;
-  endBook: unknown;
-  acmBook: unknown;
-  allBook: unknown;
-  myBsh: unknown;
-  saleCmdtid: string;
-  ordrSaleCmdtid: string;
-  hgrnSaleCmdtid: string | null;
-  rentYsno: string;
-  srisYsno: string | null;
-  cmdtHnglName: string;
-  cmdtChrcName: string;
-  pbcmName: string;
-  imgUrl: string;
-  dgctSaleFrDvsnCode: string;
-  dgctSaleFrDvsnName: string;
-  cnt: number | null;
-  remaNmtm: number;
-  remaNmtmStr: string;
-  dgctFnrdRate: number;
-  dgctSaleCmdtDvsnCode: string;
-  dgctSaleCmdtDvsnName: string | null;
-  dgctSaleCmdtDvsnBksCont: unknown;
-  dgctCmdtDsplClstCode: string | null;
-  dgctCmdtDsplClstName: string | null;
-  dgctCmdtDsplClstBksCont: unknown;
-  bksCmdtcode: string;
-  bksSubCmdtcode: string;
-  ordrId: string;
-  dgctOrdrCmdtSrmb: string;
-  samYsno: string;
-  grpCodeNm: string | null;
-  grpCode: string;
-  subBookCnt: number;
-  srsBookCnt: number;
-  buyDate: string;
-  rprsSaleCmdtid: string;
-  dgctOrdrPatrCode: string;
-  dgctElbCmdtCdtnCode: string;
-  dgctSaleCmdtGrpCode: string;
-  dgctUseSttgDttm: string;
-  dgctUseEndDttm: string | null;
-  dgctLastRdngDttm: string | null;
-  downEndDttm: string | null;
-  downEndYsno: string | null;
-  splmYsno: string;
-  webvwYsno: string;
-  artlNum: string | null;
-};
-export type KyoboBookListResponse = {
-  data: KyoboBook[];
-  statusCode: number;
-  resultCode: string | null;
-  resultMessage: string;
-  detailMessage: string;
+export const getBooks = (site: Site) => {
+  switch (site) {
+    case 'kyobo':
+      getKyoboBooks();
+      break;
+    case 'yes24':
+      break;
+    case 'aladin':
+      getAladinBooks();
+      break;
+    case 'ridi':
+      break;
+  }
 };

@@ -175,8 +175,14 @@ function App() {
       {isLoggedIn ? (
         <>
           <h1>LibroHub</h1>
-          <button onClick={() => console.log('스크래핑 시작')}>스크래핑 시작</button>
           <button onClick={handleKakaoLogout}>카카오계정 로그아웃</button>
+          <button
+            onClick={() => {
+              chrome.runtime.sendMessage({ type: 'GET_BOOKS' });
+            }}
+          >
+            모든 도서목록 가져오기
+          </button>
 
           {siteConfigs.map((site) => (
             <SiteLoginControl

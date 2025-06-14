@@ -1,5 +1,6 @@
 import { handleKakaoLogin } from './handlers/authHandler';
 import { getBooks, handleSiteLogin, sendSessionPing } from './handlers/siteHandler';
+import { getAladinBooks, getKyoboBooks, getRidiBooks } from './handlers/bookHandler';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('LibroHub Extension installed!');
@@ -51,7 +52,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'LOGIN') {
     handleSiteLogin(sendResponse, message.site)
       .then(() => {
-        //getBooks();
+        getBooks(message.site);
         sendResponse({ success: true });
       })
       .catch((err) => {
@@ -61,7 +62,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.type === 'GET_BOOKS') {
-    getBooks();
+    if (!message.site) {
+      getKyoboBooks();
+      getAladinBooks();
+      getRidiBooks();
+    }
+    getBooks(message.site);
   }
   if (message.type === 'SESSION_PING') {
     if (message.site === 'all') {
